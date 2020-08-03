@@ -9,6 +9,16 @@ import (
 	"strings"
 )
 
+/*
+TODO:
+- display values on web pge
+- update fund names and IDs from website
+- write fund info to DB
+- plot graph
+- select funds to compare
+- login with personalised default fund
+*/
+
 type Price struct {
 	Date     string  `json:"date"`
 	NavPrice float32 `json:"navPrice"`
@@ -22,6 +32,7 @@ type Fund struct {
 
 // TODO
 // - Accept date ranges
+// - select relative date range
 // - change date format to ISO
 func getFundData(fund Fund) {
 	// Download fund history and convert to store in variable
