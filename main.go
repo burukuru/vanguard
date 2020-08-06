@@ -11,7 +11,6 @@ import (
 
 /*
 TODO:
-- display values on web pge
 - update fund names and IDs from website
 - write fund info to DB
 - plot graph
@@ -34,7 +33,7 @@ type Fund struct {
 // - Accept date ranges
 // - select relative date range
 // - change date format to ISO
-func getFundData(fund Fund) {
+func getFundData(fund Fund) string {
 	// Download fund history and convert to store in variable
 	resp, err := http.Get(fund.Url)
 	if err != nil {
@@ -51,15 +50,22 @@ func getFundData(fund Fund) {
 	json.Unmarshal([]byte(b), &priceHistory)
 
 	// Print daily prices
+	var prices string
 	for _, price := range priceHistory {
-		fmt.Printf("%s: £%.2f\n", price.Date, price.NavPrice)
+		prices = prices + fmt.Sprintf("%s: £%.2f\n", price.Date, price.NavPrice)
 	}
+	return prices
 }
 
-func main() {
+func getFundDataHandler(rw http.ResponseWriter, r *http.Request) {
 	ftse_global_all_cap := Fund{
 		Url: "https://api.vanguard.com/rs/gre/gra/1.7.0/datasets/urd-product-port-specific-price-history.jsonp?vars=portId:8617,issueType:S,startDate:2020-07-22,endDate:2020-08-01&callback=angular.callbacks._c",
 	}
+	rw.Write([]byte(getFundData(ftse_global_all_cap)))
+}
 
-	getFundData(ftse_global_all_cap)
+func main() {
+
+	http.HandleFunc("/fgac", getFundDataHandler)
+	http.ListenAndServe(":8080", nil)
 }
