@@ -23,6 +23,10 @@ type Price struct {
 	NavPrice float32 `json:"navPrice"`
 }
 
+func (p Price) IsoDate() string {
+	return strings.Split(p.Date, "T")[0]
+}
+
 type PriceHistory []Price
 
 type Fund struct {
@@ -32,7 +36,6 @@ type Fund struct {
 // TODO
 // - Accept date ranges
 // - select relative date range
-// - change date format to ISO
 func getFundData(fund Fund) string {
 	// Download fund history and convert to store in variable
 	resp, err := http.Get(fund.Url)
@@ -52,7 +55,7 @@ func getFundData(fund Fund) string {
 	// Print daily prices
 	var prices string
 	for _, price := range priceHistory {
-		prices = prices + fmt.Sprintf("%s: £%.2f\n", price.Date, price.NavPrice)
+		prices = prices + fmt.Sprintf("%s: £%.2f\n", price.IsoDate(), price.NavPrice)
 	}
 	return prices
 }
