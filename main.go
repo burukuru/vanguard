@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 /*
@@ -17,6 +18,10 @@ TODO:
 - select funds to compare
 - login with personalised default fund
 */
+
+const (
+	TIME_FORMAT = "2006-01-02"
+)
 
 type Price struct {
 	Date     string  `json:"date"`
@@ -61,8 +66,14 @@ func getFundData(fund Fund) string {
 }
 
 func getFundDataHandler(rw http.ResponseWriter, r *http.Request) {
+	DayDiff := -7
+	today := time.Now().Format(TIME_FORMAT)
+	start := time.Now().AddDate(0, 0, DayDiff).Format(TIME_FORMAT)
+
+	fundUrl := fmt.Sprintf("https://api.vanguard.com/rs/gre/gra/1.7.0/datasets/urd-product-port-specific-price-history.jsonp?vars=portId:8617,issueType:S,startDate:%s,endDate:%s&callback=angular.callbacks._c", start, today)
+
 	ftse_global_all_cap := Fund{
-		Url: "https://api.vanguard.com/rs/gre/gra/1.7.0/datasets/urd-product-port-specific-price-history.jsonp?vars=portId:8617,issueType:S,startDate:2020-07-22,endDate:2020-08-01&callback=angular.callbacks._c",
+		Url: fundUrl,
 	}
 	rw.Write([]byte(getFundData(ftse_global_all_cap)))
 }
