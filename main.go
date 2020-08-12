@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -38,20 +39,30 @@ type Fund struct {
 	Url string
 }
 
-// TODO
-// - Accept date ranges
-// - select relative date range
-func getFundData(fund Fund) string {
+func callVanguardApi(Url string) string {
 	// Download fund history and convert to store in variable
-	resp, err := http.Get(fund.Url)
+	resp, err := http.Get(Url)
 	if err != nil {
 		log.Fatal(err)
 	}
 	body, _ := ioutil.ReadAll(resp.Body)
 
 	// Make into parsable JSON by removing angular related strings
-	b := strings.Replace(string(body), "angular.callbacks._c(", "", 1)
-	b = strings.Replace(b, ")", "", 1)
+	var re = regexp.MustCompile(`^angular.callbacks._[A-Za-z0-9]*\(`)
+	b := re.ReplaceAllString(string(body), "")
+	var re2 = regexp.MustCompile(`\)$`)
+	b = re2.ReplaceAllString(b, "")
+	fmt.Println(b)
+
+	return b
+}
+
+// TODO
+// - Accept date ranges
+// - select relative date range
+func getFundData(fund Fund) string {
+
+	b := callVanguardApi(fund.Url)
 
 	// Read response from API into a JSON object
 	var priceHistory PriceHistory
@@ -78,8 +89,16 @@ func getFundDataHandler(rw http.ResponseWriter, r *http.Request) {
 	rw.Write([]byte(getFundData(ftse_global_all_cap)))
 }
 
+func getFundsList(rw http.ResponseWriter, r *http.Request) {
+	fundsListUrl := "https://api.vanguard.com/rs/gre/gra/1.7.0/datasets/urd-identifiers.jsonp?callback=angular.callbacks._0"
+	fundsList := callVanguardApi(fundsListUrl)
+
+	rw.Write([]byte(fundsList))
+}
+
 func main() {
 
 	http.HandleFunc("/fgac", getFundDataHandler)
+	http.HandleFunc("/fundslist", getFundsList)
 	http.ListenAndServe(":8080", nil)
 }
