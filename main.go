@@ -36,7 +36,11 @@ func (p Price) IsoDate() string {
 type PriceHistory []Price
 
 type Fund struct {
-	Url string
+	PortId string
+}
+
+func (f Fund) Url(start string, today string) string {
+	return fmt.Sprintf("https://api.vanguard.com/rs/gre/gra/1.7.0/datasets/urd-product-port-specific-price-history.jsonp?vars=portId:%s,issueType:S,startDate:%s,endDate:%s&callback=angular.callbacks._c", f.PortId, start, today)
 }
 
 func callVanguardApi(Url string) string {
@@ -60,9 +64,9 @@ func callVanguardApi(Url string) string {
 // TODO
 // - Accept date ranges
 // - select relative date range
-func getFundData(fund Fund) string {
+func getFundData(fundUrl string) string {
 
-	b := callVanguardApi(fund.Url)
+	b := callVanguardApi(fundUrl)
 
 	// Read response from API into a JSON object
 	var priceHistory PriceHistory
@@ -81,12 +85,11 @@ func getFundDataHandler(rw http.ResponseWriter, r *http.Request) {
 	today := time.Now().Format(TIME_FORMAT)
 	start := time.Now().AddDate(0, 0, DayDiff).Format(TIME_FORMAT)
 
-	fundUrl := fmt.Sprintf("https://api.vanguard.com/rs/gre/gra/1.7.0/datasets/urd-product-port-specific-price-history.jsonp?vars=portId:8617,issueType:S,startDate:%s,endDate:%s&callback=angular.callbacks._c", start, today)
-
 	ftse_global_all_cap := Fund{
-		Url: fundUrl,
+		PortId: "8617",
 	}
-	rw.Write([]byte(getFundData(ftse_global_all_cap)))
+	fundUrl := ftse_global_all_cap.Url(start, today)
+	rw.Write([]byte(getFundData(fundUrl)))
 }
 
 func getFundsList(rw http.ResponseWriter, r *http.Request) {
