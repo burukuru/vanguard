@@ -36,8 +36,39 @@ func (p Price) IsoDate() string {
 type PriceHistory []Price
 
 type Fund struct {
-	Name   string `json:"Name"`
-	PortId string `json:"PortId"`
+	AssetClass                          string `json:"assetClass"`
+	Benchmark                           string `json:"benchmark"`
+	BenchmarkNameFromECS                string `json:"benchmarkNameFromECS"`
+	CloseIndicator                      string `json:"closeIndicator"`
+	CurrencyCode                        string `json:"currencyCode"`
+	CurrencySymbol                      string `json:"currencySymbol"`
+	CutOffTime                          string `json:"cutOffTime"`
+	DisplayName                         string `json:"displayName"`
+	DistributionStrategyType            string `json:"distributionStrategyType"`
+	DistributionStrategyTypeDescription string `json:"distributionStrategyTypeDescription"`
+	ExtendedFundType                    string `json:"extendedFundType"`
+	FundType                            string `json:"fundType"`
+	Id                                  string `json:"id"`
+	InceptionDate                       string `json:"inceptionDate"`
+	InvestmentStrategyDescription       string `json:"investmentStrategyDescription"`
+	IsGlobalBalanced                    string `json:"isGlobalBalanced"`
+	Isin                                string `json:"isin"`
+	IssueType                           string `json:"issueType"`
+	ManagementType                      string `json:"managementType"`
+	Name                                string `json:"Name"`
+	OCF                                 string `json:"OCF"`
+	ParentPortId                        string `json:"parentPortId"`
+	PortId                              string `json:"PortId"`
+	PurchaseFee                         string `json:"purchaseFee"`
+	RedemptionFee                       string `json:"redemptionFee"`
+	RetailDirectAvailability            string `json:"retailDirectAvailability"`
+	Sedol                               string `json:"sedol"`
+	ShareClassCode                      string `json:"shareClassCode"`
+	ShareClassCodeDescription           string `json:"shareClassCodeDescription"`
+	ShareclassCode                      string `json:"shareclassCode"`
+	ShareclassDescription               string `json:"shareclassDescription"`
+	StampDutyReserveTax                 string `json:"stampDutyReserveTax"`
+	ValidityCode                        string `json:"validityCode"`
 }
 
 func (f Fund) Url(start string, today string) string {
@@ -107,7 +138,7 @@ func getFundsListHandler(rw http.ResponseWriter, r *http.Request) {
 	var response string
 
 	for _, fund := range FundsList {
-		response = response + fmt.Sprintf("%s: %s\n", fund.Name, fund.PortId)
+		response = response + fmt.Sprintf("%s %s: %s\n", fund.Name, fund.ShareClassCodeDescription, fund.PortId)
 	}
 	rw.Write([]byte(response))
 }
