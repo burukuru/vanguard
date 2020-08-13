@@ -36,7 +36,8 @@ func (p Price) IsoDate() string {
 type PriceHistory []Price
 
 type Fund struct {
-	PortId string
+	Name   string `json:"Name"`
+	PortId string `json:"PortId"`
 }
 
 func (f Fund) Url(start string, today string) string {
@@ -56,7 +57,6 @@ func callVanguardApi(Url string) string {
 	b := re.ReplaceAllString(string(body), "")
 	var re2 = regexp.MustCompile(`\)$`)
 	b = re2.ReplaceAllString(b, "")
-	fmt.Println(b)
 
 	return b
 }
@@ -92,16 +92,29 @@ func getFundDataHandler(rw http.ResponseWriter, r *http.Request) {
 	rw.Write([]byte(getFundData(fundUrl)))
 }
 
-func getFundsList(rw http.ResponseWriter, r *http.Request) {
+func getFundsList() []byte {
 	fundsListUrl := "https://api.vanguard.com/rs/gre/gra/1.7.0/datasets/urd-identifiers.jsonp?callback=angular.callbacks._0"
 	fundsList := callVanguardApi(fundsListUrl)
 
-	rw.Write([]byte(fundsList))
+	return []byte(fundsList)
+}
+
+func getFundsListHandler(rw http.ResponseWriter, r *http.Request) {
+	fundsList := getFundsList()
+	var FundsList []Fund
+
+	json.Unmarshal(fundsList, &FundsList)
+	var response string
+
+	for _, fund := range FundsList {
+		response = response + fmt.Sprintf("%s: %s\n", fund.Name, fund.PortId)
+	}
+	rw.Write([]byte(response))
 }
 
 func main() {
 
 	http.HandleFunc("/fgac", getFundDataHandler)
-	http.HandleFunc("/fundslist", getFundsList)
+	http.HandleFunc("/fundslist", getFundsListHandler)
 	http.ListenAndServe(":8080", nil)
 }
