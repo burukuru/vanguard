@@ -111,15 +111,17 @@ func getFundData(fundUrl string) string {
 	return prices
 }
 
-func getFundDataHandler(rw http.ResponseWriter, r *http.Request) {
+func getFundPriceHandler(rw http.ResponseWriter, r *http.Request) {
 	DayDiff := -7
 	today := time.Now().Format(TIME_FORMAT)
 	start := time.Now().AddDate(0, 0, DayDiff).Format(TIME_FORMAT)
+	validPath := regexp.MustCompile("^/fundprice/([0-9]+)$")
+	portId := validPath.FindStringSubmatch(r.URL.Path)[1]
 
-	ftse_global_all_cap := Fund{
-		PortId: "8617",
+	fund := Fund{
+		PortId: portId,
 	}
-	fundUrl := ftse_global_all_cap.Url(start, today)
+	fundUrl := fund.Url(start, today)
 	rw.Write([]byte(getFundData(fundUrl)))
 }
 
@@ -138,14 +140,15 @@ func getFundsListHandler(rw http.ResponseWriter, r *http.Request) {
 	var response string
 
 	for _, fund := range FundsList {
-		response = response + fmt.Sprintf("%s %s: %s\n", fund.Name, fund.ShareClassCodeDescription, fund.PortId)
+		response = response + fmt.Sprintf("<a href=fundprice/%s>%s %s</a></br>", fund.PortId, fund.Name, fund.ShareClassCodeDescription)
 	}
 	rw.Write([]byte(response))
 }
 
 func main() {
 
-	http.HandleFunc("/fgac", getFundDataHandler)
+	http.HandleFunc("/fundprice/", getFundPriceHandler)
 	http.HandleFunc("/fundslist", getFundsListHandler)
+	http.Handle("/", http.RedirectHandler("/fundslist", 302))
 	http.ListenAndServe(":8080", nil)
 }
